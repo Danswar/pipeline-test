@@ -14,7 +14,7 @@ cd android
 TIMESTAMP=$(date +%s)
 sed -i'.original'  "s/versionCode 1/versionCode $TIMESTAMP/g" app/build.gradle
 echo "##### 123 ###"
-./gradlew assembleRelease --debug
+./gradlew assembleRelease
 echo "##### 456 ###"
 mv ./app/build/outputs/apk/release/app-release-unsigned.apk ./app/build/outputs/apk/release/app-release.apk
 $ANDROID_HOME/build-tools/33.0.2/apksigner sign --ks ./bluewallet-release-key.keystore   --ks-pass=pass:$KEYSTORE_PASSWORD ./app/build/outputs/apk/release/app-release.apk
