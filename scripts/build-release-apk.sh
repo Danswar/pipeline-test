@@ -11,6 +11,7 @@ echo $KEYSTORE_FILE_HEX
 echo $KEYSTORE_FILE_HEX > bluewallet-release-key.keystore.hex
 xxd -plain -revert bluewallet-release-key.keystore.hex > ./android/bluewallet-release-key.keystore
 rm bluewallet-release-key.keystore.hex
+ls ./android
 
 cd android
 TIMESTAMP=$(date +%s)
