@@ -6,8 +6,8 @@
 # PS. to turn file to hex and back:
 #     $ xxd -plain test.txt > test.hex
 #     $ xxd -plain -revert test.hex test2.txt
-
-
+echo "############### ########### ############"
+echo $KEYSTORE_FILE_HEX
 echo $KEYSTORE_FILE_HEX > bluewallet-release-key.keystore.hex
 xxd -plain -revert bluewallet-release-key.keystore.hex > ./android/bluewallet-release-key.keystore
 rm bluewallet-release-key.keystore.hex
