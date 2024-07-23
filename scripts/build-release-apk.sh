@@ -19,5 +19,7 @@ mv ./app/build/outputs/apk/release/app-release-unsigned.apk ./app/build/outputs/
 ls ./app/build/outputs/apk/release
 echo $ANDROID_HOME
 ls $ANDROID_HOME
+ls $ANDROID_HOME/build-tools
+ls $ANDROID_HOME/build-tools/30.0.2
 $ANDROID_HOME/build-tools/30.0.2/apksigner sign --ks ./bluewallet-release-key.keystore   --ks-pass=pass:$KEYSTORE_PASSWORD ./app/build/outputs/apk/release/app-release.apk
 
