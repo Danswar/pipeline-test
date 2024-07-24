@@ -63,14 +63,13 @@ jobs:
         with:
           name: BlueWallet-${{ env.VERSION_NAME }}(${{ env.NEW_BUILD_NUMBER }}).apk
           path: ./android/app/build/outputs/apk/release/app-release.apk
-
-      - name: Check if release exists
+      
+      - uses: cardinalby/git-get-release-action@v1
         id: get_release
-        uses: peter-evans/release-drafter@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         with:
-          tag_name: ${{ github.ref }}
+          tag: ${{ github.ref_name }}   
 
       - name: Upload artifact
         uses: actions/upload-release-asset@v1
