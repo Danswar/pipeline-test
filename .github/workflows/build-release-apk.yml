@@ -79,3 +79,4 @@ jobs:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ./android/app/build/outputs/apk/release/app-release.apk
           asset_name: BlueWallet-${{ env.VERSION_NAME }}(${{ env.NEW_BUILD_NUMBER }}).apk
+          asset_content_type: application/vnd.android.package-archive
