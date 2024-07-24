@@ -26,8 +26,7 @@ export default class Lnurl {
   }
 
   static findlnurl(bodyOfText) {
-    const cleanedText = bodyOfText.replace('mailto:', '').toLowerCase();
-    const res = /(?:http.*[&?]lightning=|lightning:)?(lnurl1[02-9ac-hj-np-z]+)/.exec(cleanedText);
+    const res = /^(?:http.*[&?]lightning=|lightning:)?(lnurl1[02-9ac-hj-np-z]+)/.exec(bodyOfText.toLowerCase());
     if (res) {
       return res[1];
     }
@@ -48,9 +47,8 @@ export default class Lnurl {
     const found = Lnurl.findlnurl(lnurlExample);
     if (!found) {
       if (Lnurl.isLightningAddress(lnurlExample)) {
-        const cleanedAddress = lnurlExample.replace('mailto:', '').toLowerCase();
-        const username = cleanedAddress.split('@')[0].trim();
-        const host = cleanedAddress.split('@')[1].trim();
+        const username = lnurlExample.split('@')[0].trim();
+        const host = lnurlExample.split('@')[1].trim();
         const proto = host.match(/\.onion$/) ? 'http' : 'https';
         return `${proto}://${host}/.well-known/lnurlp/${username}`;
       } else {
@@ -357,7 +355,7 @@ export default class Lnurl {
 
   static isLightningAddress(address) {
     // ensure only 1 `@` present:
-    if (address.replace('mailto:', '').split('@').length !== 2) return false;
+    if (address.split('@').length !== 2) return false;
     const splitted = address.split('@');
     return !!splitted[0].trim() && !!splitted[1].trim();
   }
