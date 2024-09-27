@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useContext, useRef, useMemo } from 'react';
 import {
-  Alert,
   Dimensions,
   InteractionManager,
   PixelRatio,
@@ -51,7 +50,7 @@ const dummyTaroWallets = [
 ];
 
 const WalletHome = ({ navigation }) => {
-  const { wallets, saveToDisk, setSelectedWallet, isElectrumDisabled, ldsDEV } = useContext(BlueStorageContext);
+  const { wallets, saveToDisk, setSelectedWallet, isElectrumDisabled, ldsDEV, isPosMode } = useContext(BlueStorageContext);
   const walletID = useMemo(() => wallets[0]?.getID(), [wallets]);
   const multisigWallet = useMemo(() => wallets.find(w => w.type === MultisigHDWallet.type), [wallets]);
   const lnWallet = useMemo(() => wallets.find(w => w.type === LightningLdsWallet.type), [wallets]);
@@ -219,32 +218,7 @@ const WalletHome = ({ navigation }) => {
   };
 
   const sendButtonPress = () => {
-    if (wallet.chain === Chain.OFFCHAIN) {
-      return navigate('SendDetailsRoot', { screen: 'ScanLndInvoice', params: { walletID: wallet.getID() } });
-    }
-
-    if (wallet.type === WatchOnlyWallet.type && wallet.isHd() && !wallet.useWithHardwareWalletEnabled()) {
-      return Alert.alert(
-        loc.wallets.details_title,
-        loc.transactions.enable_offline_signing,
-        [
-          {
-            text: loc._.ok,
-            onPress: async () => {
-              wallet.setUseWithHardwareWalletEnabled(true);
-              await saveToDisk();
-              navigateToSendScreen();
-            },
-            style: 'default',
-          },
-
-          { text: loc._.cancel, onPress: () => { }, style: 'cancel' },
-        ],
-        { cancelable: false },
-      );
-    }
-
-    navigateToSendScreen();
+    return navigate('ScanCodeSendRoot', { screen: 'ScanCodeSend' });
   };
 
   const sendButtonLongPress = async () => {
@@ -313,7 +287,11 @@ const WalletHome = ({ navigation }) => {
 
   const onReceiveButtonPressed = () => {
     if (multisigWallet) return navigate('ReceiveDetailsRoot', { screen: 'ReceiveDetails', params: { walletID: multisigWallet.getID() } });
-    if (lnWallet) return navigate('ReceiveDetailsRoot', { screen: 'LNDReceive', params: { walletID: lnWallet.getID() } });
+    if (lnWallet)
+      return navigate('ReceiveDetailsRoot', {
+        screen: lnWallet.isPosMode ? 'PosReceive' : 'LNDReceive',
+        params: { walletID: lnWallet.getID() },
+      });
     return navigate('ReceiveDetailsRoot', { screen: 'ReceiveDetails', params: { walletID: wallet.getID() } });
   };
 

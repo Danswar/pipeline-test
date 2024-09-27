@@ -28,6 +28,9 @@ export const BlueStorageProvider = ({ children }) => {
   const getLanguageAsyncStorage = useAsyncStorage(LOC_STORAGE_KEY).getItem;
   const [isHandOffUseEnabled, setIsHandOffUseEnabled] = useState(false);
   const [ldsDEV, setLdsDEV] = useState(false);
+  const [isPosMode, setIsPosMode] = useState(false);
+  const [isDfxPos, setIsDfxPos] = useState(false);
+  const [isDfxSwap, setIsDfxSwap] = useState(false);
   const [isElectrumDisabled, setIsElectrumDisabled] = useState(true);
   const [isTorDisabled, setIsTorDisabled] = useState(false);
   const [isPrivacyBlurEnabled, setIsPrivacyBlurEnabled] = useState(true);
@@ -58,6 +61,21 @@ export const BlueStorageProvider = ({ children }) => {
     return BlueApp.setIsLdsDevEnabled(value);
   };
 
+  const setIsPosModeAsyncStorage = value => {
+    setIsPosMode(value);
+    return BlueApp.setIsPOSmodeEnabled(value);
+  }
+
+  const setIsDfxPosAsyncStorage = value => {
+    setIsDfxPos(value);
+    return BlueApp.setIsDfxPOSEnabled(value);
+  }
+
+  const setIsDfxSwapAsyncStorage = value => {
+    setIsDfxSwap(value);
+    return BlueApp.setIsDfxSwapEnabled(value);
+  }
+
   const saveToDisk = async (force = false) => {
     if (BlueApp.getWallets().length === 0 && !force) {
       console.log('not saving empty wallets array');
@@ -80,11 +98,23 @@ export const BlueStorageProvider = ({ children }) => {
         setIsHandOffUseEnabled(!!enabledHandoff);
         const enabledLdsDev = await BlueApp.isLdsDevEnabled();
         setLdsDEV(!!enabledLdsDev);
+        const enabledPosMode = await BlueApp.isPOSmodeEnabled();
+        setIsPosMode(!!enabledPosMode);
+        const enabledDfxPos = await BlueApp.isDfxPOSEnabled();
+        setIsDfxPos(!!enabledDfxPos);
+        const enabledDfxSwap = await BlueApp.isDfxSwapEnabled();
+        setIsDfxSwap(!!enabledDfxSwap);
       } catch (_e) {
         setIsHandOffUseEnabledAsyncStorage(false);
         setIsHandOffUseEnabled(false);
         setLdsDEVAsyncStorage(false);
         setLdsDEV(false);
+        setIsPosModeAsyncStorage(false);
+        setIsPosMode(false);
+        setIsDfxPosAsyncStorage(false);
+        setIsDfxPos(false);
+        setIsDfxSwapAsyncStorage(false);
+        setIsDfxSwap(false);
       }
     })();
   }, []);
@@ -292,6 +322,12 @@ export const BlueStorageProvider = ({ children }) => {
         // Feature flags
         ldsDEV,
         setLdsDEVAsyncStorage,
+        isPosMode,
+        setIsPosModeAsyncStorage,
+        isDfxPos,
+        setIsDfxPosAsyncStorage,
+        isDfxSwap,
+        setIsDfxSwapAsyncStorage,
       }}
     >
       {children}

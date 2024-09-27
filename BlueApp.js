@@ -18,7 +18,6 @@ import {
   HDSegwitElectrumSeedP2WPKHWallet,
   HDAezeedWallet,
   MultisigHDWallet,
-  LightningLdkWallet,
   SLIP39SegwitP2SHWallet,
   SLIP39LegacyP2PKHWallet,
   SLIP39SegwitBech32Wallet,
@@ -46,6 +45,9 @@ class AppStorage {
   static HANDOFF_STORAGE_KEY = 'HandOff';
   static PAY_CARD = 'PAY_CARD';
   static FF_LDS_DEV_API = 'ff_lds_dev_api';
+  static POS_MODE = 'pos_mode';
+  static DFX_POS = 'dfx_pos';
+  static DFX_SWAP = 'dfx_swap';
 
   static keys2migrate = [AppStorage.HANDOFF_STORAGE_KEY, AppStorage.DO_NOT_TRACK, AppStorage.ADVANCED_MODE_ENABLED];
 
@@ -385,9 +387,6 @@ class AppStorage {
             }
 
             break;
-          case LightningLdkWallet.type:
-            unserializedWallet = LightningLdkWallet.fromJson(key);
-            break;
           case SLIP39SegwitP2SHWallet.type:
             unserializedWallet = SLIP39SegwitP2SHWallet.fromJson(key);
             break;
@@ -461,12 +460,6 @@ class AppStorage {
   deleteWallet = wallet => {
     const ID = wallet.getID();
     const tempWallets = [];
-
-    if (wallet.type === LightningLdkWallet.type) {
-      /** @type {LightningLdkWallet} */
-      const ldkwallet = wallet;
-      ldkwallet.stop().then(ldkwallet.purgeLocalStorage).catch(alert);
-    }
 
     for (const value of this.wallets) {
       if (value.getID() === ID) {
@@ -856,6 +849,39 @@ class AppStorage {
 
   setIsLdsDevEnabled = async value => {
     await AsyncStorage.setItem(AppStorage.FF_LDS_DEV_API, value ? '1' : '');
+  };
+
+  isPOSmodeEnabled = async () => {
+    try {
+      return !!(await AsyncStorage.getItem(AppStorage.POS_MODE));
+    } catch (_) {}
+    return false;
+  };
+
+  setIsPOSmodeEnabled = async value => {
+    await AsyncStorage.setItem(AppStorage.POS_MODE, value ? '1' : '');
+  };
+
+  isDfxPOSEnabled = async () => {
+    try {
+      return !!(await AsyncStorage.getItem(AppStorage.DFX_POS));
+    } catch (_) {}
+    return false;
+  };
+
+  setIsDfxPOSEnabled = async value => {
+    await AsyncStorage.setItem(AppStorage.DFX_POS, value ? '1' : '');
+  };
+
+  isDfxSwapEnabled = async () => {
+    try {
+      return !!(await AsyncStorage.getItem(AppStorage.DFX_SWAP));
+    } catch (_) {}
+    return false;
+  };
+
+  setIsDfxSwapEnabled = async value => {
+    await AsyncStorage.setItem(AppStorage.DFX_SWAP, value ? '1' : '');
   };
 
   isHandoffEnabled = async () => {

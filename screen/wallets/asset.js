@@ -49,6 +49,7 @@ import BuyFr from '../../img/dfx/buttons/buy_fr.png';
 import SellFr from '../../img/dfx/buttons/sell_fr.png';
 import BuyIt from '../../img/dfx/buttons/buy_it.png';
 import SellIt from '../../img/dfx/buttons/sell_it.png';
+import SwapEn from '../../img/dfx/buttons/swap.png';
 import NetworkTransactionFees, { NetworkTransactionFee } from '../../models/networkTransactionFees';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AbstractHDElectrumWallet } from '../../class/wallets/abstract-hd-electrum-wallet';
@@ -73,6 +74,8 @@ const Asset = ({ navigation }) => {
     refreshAllWalletTransactions,
     walletTransactionUpdateStatus,
     isElectrumDisabled,
+    isDfxPos,
+    isDfxSwap
   } = useContext(BlueStorageContext);
   const { name, params } = useRoute();
   const walletID = params.walletID;
@@ -95,15 +98,15 @@ const Asset = ({ navigation }) => {
   const getButtonImages = lang => {
     switch (lang) {
       case 'en':
-        return [BuyEn, SellEn];
+        return [BuyEn, SellEn, SwapEn];
       case 'de_de':
-        return [BuyDe, SellDe];
+        return [BuyDe, SellDe, SwapEn];
       case 'fr_fr':
-        return [BuyFr, SellFr];
+        return [BuyFr, SellFr, SwapEn];
       case 'it':
-        return [BuyIt, SellIt];
+        return [BuyIt, SellIt, SwapEn];
       default:
-        return [BuyEn, SellEn];
+        return [BuyEn, SellEn, SwapEn];
     }
   };
 
@@ -249,9 +252,9 @@ const Asset = ({ navigation }) => {
 
   const getBalanceByDfxService = async service => {
     const balance = wallet.getBalance();
-    if (service === DfxService.SELL) {
+    if (service === DfxService.SELL || service === DfxService.SWAP) {
       try {
-        const fee = wallet.chain === Chain.ONCHAIN ? await getEstimatedOnChainFee() : balance * 0.03; // max 3% fee for LNBits
+        const fee = wallet.chain === Chain.ONCHAIN ? await getEstimatedOnChainFee() : 0;
         return balance - fee;
       } catch (_) {
         return 0;
@@ -275,6 +278,13 @@ const Asset = ({ navigation }) => {
       ]);
     }
     setIsHandlingOpenServices(false);
+  };
+
+  const handleOpenDfxPosMode = async () => {
+    navigate('ReceiveDetailsRoot', {
+      screen: 'CashierDfxPos',
+      params: { walletID: wallet.getID() },
+    });
   };
 
   // if description of transaction has been changed we want to show new one
@@ -379,15 +389,6 @@ const Asset = ({ navigation }) => {
     );
   };
 
-  const navigateToSendScreen = () => {
-    navigate('SendDetailsRoot', {
-      screen: 'SendDetails',
-      params: {
-        walletID: wallet.getID(),
-      },
-    });
-  };
-
   const renderItem = item => (
     <TransactionListItem item={item.item} itemPriceUnit={itemPriceUnit} timeElapsed={timeElapsed} walletID={walletID} />
   );
@@ -440,33 +441,19 @@ const Asset = ({ navigation }) => {
     onBarCodeRead(await BlueClipboard().getClipboardContent());
   };
 
-  const sendButtonPress = () => {
+  const receiveButtonPress = () => {
     if (wallet.chain === Chain.OFFCHAIN) {
-      return navigate('SendDetailsRoot', { screen: 'ScanLndInvoice', params: { walletID: wallet.getID() } });
+      navigate('ReceiveDetailsRoot', {
+        screen: wallet.isPosMode ? 'PosReceive' : 'LNDReceive',
+        params: { walletID: wallet.getID() },
+      });
+    } else {
+      navigate('ReceiveDetailsRoot', { screen: 'ReceiveDetails', params: { walletID: wallet.getID() } });
     }
+  }
 
-    if (wallet.type === WatchOnlyWallet.type && wallet.isHd() && !wallet.useWithHardwareWalletEnabled()) {
-      return Alert.alert(
-        loc.wallets.details_title,
-        loc.transactions.enable_offline_signing,
-        [
-          {
-            text: loc._.ok,
-            onPress: async () => {
-              wallet.setUseWithHardwareWalletEnabled(true);
-              await saveToDisk();
-              navigateToSendScreen();
-            },
-            style: 'default',
-          },
-
-          { text: loc._.cancel, onPress: () => { }, style: 'cancel' },
-        ],
-        { cancelable: false },
-      );
-    }
-
-    navigateToSendScreen();
+  const sendButtonPress = () => {
+    return navigate('ScanCodeSendRoot', {screen: 'ScanCodeSend', params: { walletID: wallet.getID() }});
   };
 
   const sendButtonLongPress = async () => {
@@ -595,6 +582,15 @@ const Asset = ({ navigation }) => {
                         disabled={isHandlingOpenServices}
                       />
                     </View>
+                    {isDfxSwap && (
+                      <View>
+                        <ImageButton
+                          source={buttonImages[2]}
+                          onPress={() => handleOpenServices(DfxService.SWAP)}
+                          disabled={isHandlingOpenServices}
+                        />
+                      </View>
+                    )}
                     <View>
                       <ImageButton
                         source={buttonImages[1]}
@@ -602,6 +598,19 @@ const Asset = ({ navigation }) => {
                         disabled={isHandlingOpenServices}
                       />
                     </View>
+                    {isDfxPos && (
+                      <View style={{ backgroundColor: colors.background, height: '100%' }}>
+                        <TouchableOpacity
+                          onPress={handleOpenDfxPosMode}
+                          disabled={isHandlingOpenServices}
+                          style={{ justifyContent: 'center', alignItems: 'center', width: 60, padding: 10 }}
+                        >
+                          <BlueText>Point</BlueText>
+                          <BlueText>of</BlueText>
+                          <BlueText>Sale</BlueText>
+                        </TouchableOpacity>
+                      </View>
+                    )}
                   </>
                 )}
               </View>
@@ -652,13 +661,7 @@ const Asset = ({ navigation }) => {
           <FButton
             testID="ReceiveButton"
             text={loc.receive.header}
-            onPress={() => {
-              if (wallet.chain === Chain.OFFCHAIN) {
-                navigate('ReceiveDetailsRoot', { screen: 'LNDReceive', params: { walletID: wallet.getID() } });
-              } else {
-                navigate('ReceiveDetailsRoot', { screen: 'ReceiveDetails', params: { walletID: wallet.getID() } });
-              }
-            }}
+            onPress={receiveButtonPress}
             icon={
               <View style={styles.receiveIcon}>
                 <Icon name="arrow-down" size={buttonFontSize} type="font-awesome" color={colors.buttonAlternativeTextColor} />
